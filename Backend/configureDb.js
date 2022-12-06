@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+// mongodb://localhost/stackoverflow
 
 const connectDB = async () => {
   try {

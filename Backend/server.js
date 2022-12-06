@@ -83,10 +83,57 @@ app.get("/api/questions", async (req, res) => {
 });
 
 app.post("/api/uploadquestion", async (req, res) => {
-  const { content, image } = req.body;
+  //the email && password is also coming from the users local storage in order to know the user who uploaded the question.
+  //while the user will manually give the content, tags, && image
+  //askedOn gives us the date a user upload a question
+  //the author is the user which we get after check the email && password
 
-  const question = await questionModel.create({ content, image });
-  res.send(question);
+  const { content, image, tags, email, password } = req.body;
+
+  const author = await User.findOne({ email, password });
+
+  if (author) {
+    const question = await questionModel.create({
+      content,
+      image,
+      author: poster,
+      askedOn: new Date(),
+      tags,
+    });
+    res.send(question);
+  } else {
+    res.json("this user does not exist");
+  }
+});
+
+app.post("/api/answerquestion", async (req, res) => {
+  //the email && password is also coming from the users local storage in order to know the user who is answering a question.
+  //the questionId is used to know the specific question the user is answering.
+  const { email, password, questionId, content, image } = req.body;
+
+  const poster = await User.findOne({ email, password });
+
+  if (poster) {
+    const answer = await questionModel.updateOne(
+      { _id: questionId },
+      { $push: { answer: [{ content, image, poster }] } }
+    );
+    res.json(answer);
+  } else {
+    req.json("this user does not exist");
+  }
+});
+
+app.post("/api/vote", async (req, res) => {
+  //the questionId is used to know the specific question the user is voting for.
+
+  const { questionId } = req.body;
+
+  const question = await questionModel.findOne({ _id: questionId });
+
+  question.votes++;
+  question.save();
+  res.json(question);
 });
 
 app.listen(5000, () => console.log("app is running on port 5000"));
