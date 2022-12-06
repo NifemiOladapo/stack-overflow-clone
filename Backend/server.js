@@ -96,7 +96,7 @@ app.post("/api/uploadquestion", async (req, res) => {
     const question = await questionModel.create({
       content,
       image,
-      author: poster,
+      author,
       askedOn: new Date(),
       tags,
     });
